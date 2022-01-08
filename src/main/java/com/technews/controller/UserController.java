@@ -1,6 +1,15 @@
 package com.technews.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import com.technews.model.Post;
+import com.technews.model.User;
+import com.technews.repository.UserRepository;
+import com.technews.repository.VoteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class UserController {
@@ -24,7 +33,7 @@ public class UserController {
 
     @GetMapping("/api/users/{id}")
     public User getUserById(@PathVariable Integer id) {
-        User returnUser = repository.getOne(id);
+        User returnUser = repository.getById(id);
         List<Post> postList = returnUser.getPosts();
         for (Post p : postList) {
             p.setVoteCount(voteRepository.countVotesByPostId(p.getId()));
@@ -43,7 +52,7 @@ public class UserController {
 
     @PutMapping("/api/users/{id}")
     public User updateUser(@PathVariable int id, @RequestBody User user) {
-        User tempUser = repository.getOne(id);
+        User tempUser = repository.getById(id);
 
         if (!tempUser.equals(null)) {
             user.setId(tempUser.getId());

@@ -1,53 +1,49 @@
 package com.technews.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-// class-level annotations
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Table(name = "user")
 public class User implements Serializable {
-    // BEGINS instance variables
-    @Id // this means that id is the unique identifier
+
+    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
     private String username;
     @Column(unique = true)
     private String email;
     private String password;
-    @Transient //this signals to Spring Data JPA that `loggedIn` value will not persist in the db
+    @Transient
     boolean loggedIn;
 
-    // only one fetch can be designated as EAGER, which gathers all data immediately after creation
     @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Post> posts;
 
-    // uses FetchType.LAZY to resolve multiple bags exception. It gathers data as needed
+    // Need to use FetchType.LAZY to resolve multiple bags exception
     @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Vote> votes;
 
-    // uses FetchType.LAZY to resolve multiple bags exception. It gathers data as needed
+    // Need to use FetchType.LAZY to resolve multiple bags exception
     @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> comments;
-    // ENDS instance variables
 
-    // constructors
-    public User(Integer id, String username, String email, String password, boolean loggedIn, List<Post> posts, List<Vote> votes, List<Comment> comments) {
+    public User() {
+    }
+
+    public User(Integer id, String username, String email, String password) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.loggedIn = loggedIn;
-        this.posts = posts;
-        this.votes = votes;
-        this.comments = comments;
     }
 
-    // BEGINS getters and setters
+
     public Integer getId() {
         return id;
     }
@@ -111,24 +107,27 @@ public class User implements Serializable {
     public void setComments(List<Comment> comments) {
         this.comments = comments;
     }
-    // ENDS getters and setters
 
-    // BEGINS equals() and hashCode() methods
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof User)) return false;
         User user = (User) o;
-        return loggedIn == user.loggedIn && Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(posts, user.posts) && Objects.equals(votes, user.votes) && Objects.equals(comments, user.comments);
+        return isLoggedIn() == user.isLoggedIn() &&
+                Objects.equals(getId(), user.getId()) &&
+                Objects.equals(getUsername(), user.getUsername()) &&
+                Objects.equals(getEmail(), user.getEmail()) &&
+                Objects.equals(getPassword(), user.getPassword()) &&
+                Objects.equals(getPosts(), user.getPosts()) &&
+                Objects.equals(getVotes(), user.getVotes()) &&
+                Objects.equals(getComments(), user.getComments());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, email, password, loggedIn, posts, votes, comments);
+        return Objects.hash(getId(), getUsername(), getEmail(), getPassword(), isLoggedIn(), getPosts(), getVotes(), getComments());
     }
-    // ENDS equals() and hashCode() methods
 
-    // BEGINS toString() method
     @Override
     public String toString() {
         return "User{" +
@@ -142,5 +141,4 @@ public class User implements Serializable {
                 ", comments=" + comments +
                 '}';
     }
-    // ENDS toString() method
 }
